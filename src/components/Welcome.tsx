@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Store } from "../store/store-reducer";
 
 import { styled } from "@mui/material/styles";
@@ -21,7 +21,23 @@ const ActionButton = styled(Button)({
 interface IProps {}
 
 const Welcome: React.FC<IProps> = () => {
-  const { state, dispatch } = React.useContext(Store);
+    const { state, dispatch } = React.useContext(Store);
+    const [userNFTs, setUserNFTs] = useState([]);
+
+    // Welcome.tsx
+    const displayNFTs = async () => {
+        updateRefreshingAction(dispatch, {
+            status: true,
+            message: "Retrieving NFTs...",
+        });
+        const NFTs = await utils.getNFTData(state.wallet.serverWeb3Provider, state.wallet.address);
+        setUserNFTs(NFTs);
+        updateRefreshingAction(dispatch, {
+            status: false,
+            message: "Complete",
+        });
+        console.log(NFTs)
+    };
 
   // Welcome.tsx
   const sendTransaction = async () => {
@@ -63,6 +79,11 @@ const Welcome: React.FC<IProps> = () => {
       state.wallet.serverWeb3Provider,
       state.wallet.address
     );
+    const NFTBalance = await utils.getNFTData(
+      state.wallet.serverWeb3Provider,
+      state.wallet.address
+    );
+      console.log(NFTBalance)
     updateRefreshingAction(dispatch, {
       status: false,
       message: "Complete",
@@ -72,8 +93,14 @@ const Welcome: React.FC<IProps> = () => {
       lastBlockNumber: lastBlockNumber,
       croBalance: croBalance,
       erc20Balance: erc20Balance,
+        NFTBalance: NFTBalance,
     });
-  };
+    };
+
+
+
+
+   
 
   const renderLastTransaction = () => {
     if (state.queryResults.lastTxHash) {
@@ -108,7 +135,11 @@ const Welcome: React.FC<IProps> = () => {
           </ActionButton>
           <ActionButton variant="contained" onClick={refreshQueryResults}>
             Refresh Balance
-          </ActionButton>
+              </ActionButton>
+              <ActionButton variant="contained" onClick={displayNFTs}>
+                  displayNFTs
+              </ActionButton>
+             
         </div>
       );
     } else {
@@ -135,7 +166,11 @@ const Welcome: React.FC<IProps> = () => {
     } else {
       return null;
     }
-  };
+    };
+
+
+
+
 
   return (
     <div>
@@ -176,10 +211,17 @@ const Welcome: React.FC<IProps> = () => {
           <Typography variant="body1" component="div" gutterBottom>
             User's CTOK token balance: {state.queryResults.erc20Balance}
           </Typography>
+          <Typography variant="body1" component="div" gutterBottom>
+            User's NFT balance: {state.queryResults.NFTBalance}
+          </Typography>
           {renderLastTransaction()}
           {renderButtons()}
           {renderDebugInfo()}
+                  
+          
+
         </Paper>
+              
       </Box>
     </div>
   );
